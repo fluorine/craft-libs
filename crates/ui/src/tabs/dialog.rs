@@ -107,10 +107,11 @@ mod tests {
         let mut style = style();
         style.border.width = f32::NAN;
         style.font.size = f32::INFINITY;
-        let out = ctx.run_ui(egui::RawInput::default(), |ui| {
+        let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
             let (_, rect) = ui.allocate_space(Vec2::new(5.0, 3.0));
             Tab::new(Id::new("small"), "A long localized label", true).show_dialog_at(ui, rect, &style);
         });
+        out.textures_delta.clear();
         let _ = ctx.tessellate(out.shapes, out.pixels_per_point);
     }
 }
