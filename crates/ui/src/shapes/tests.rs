@@ -61,6 +61,8 @@ fn every_procedural_preview_tessellates_and_invalid_geometry_is_inert() {
         }
     });
     for primitive in ctx.tessellate(out.shapes, out.pixels_per_point) {
+        assert!(primitive.clip_rect.min.x >= 10.0 && primitive.clip_rect.min.y >= 10.0);
+        assert!(primitive.clip_rect.max.x <= 30.0 && primitive.clip_rect.max.y <= 30.0);
         if let egui::epaint::Primitive::Mesh(mesh) = primitive.primitive {
             assert!(mesh.is_valid());
             assert!(mesh.vertices.iter().all(|v| v.pos.is_finite()));

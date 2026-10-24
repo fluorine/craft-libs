@@ -9,6 +9,7 @@ pub fn paint_preset(painter: &Painter, rect: Rect, preset: ShapePreset, stroke: 
     if !rect.is_finite() || rect.width() <= 0.0 || rect.height() <= 0.0 || rect.size().max_elem() > 4096.0 {
         return;
     }
+    let painter = painter.with_clip_rect(painter.clip_rect().intersect(rect));
     let scale = rect.width().min(rect.height()) / 20.0;
     let origin = rect.center() - vec2(10.0, 10.0) * scale;
     let point = |x: f32, y: f32| origin + vec2(x, y) * scale;
