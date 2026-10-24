@@ -33,7 +33,8 @@ fn display_settings(ui: &mut egui::Ui, show_grid: &mut bool) {
 ```
 
 The default fills available width; `.fill_width(false)` wraps the contents. An empty heading adds
-no row or heading gap. The helper neither indents controls nor adds exterior spacing: compose those
+no row or heading gap. The heading remains above the contents even in a horizontal parent.
+The helper neither indents controls nor adds exterior spacing: compose those
 in the caller's layout. Reusing the same frame for nested sections preserves its fill without
 accumulating tint or changing global visuals. Invalid floating-point decoration becomes zero and
 large heading gaps/strokes are capped at 64 logical points; forced widths are capped at one million.

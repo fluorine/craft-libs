@@ -61,17 +61,22 @@ impl Section {
         let width = decoration(frame.stroke.width);
         frame.stroke = if width == 0.0 { Stroke::NONE } else { Stroke::new(width, frame.stroke.color) };
         frame.show(ui, |ui| {
-            if self.fill_width {
-                let width = ui.available_width();
-                if width.is_finite() && width > 0.0 {
-                    ui.set_width(width.min(MAX_WIDTH));
+            // A frame inherits its parent's layout. Keep the section's heading above its body
+            // even when the caller places several sections side by side in a horizontal row.
+            ui.vertical(|ui| {
+                if self.fill_width {
+                    let width = ui.available_width();
+                    if width.is_finite() && width > 0.0 {
+                        ui.set_width(width.min(MAX_WIDTH));
+                    }
                 }
-            }
-            if let Some(heading) = self.heading {
-                ui.add(Label::new(heading));
-                ui.add_space(self.heading_gap);
-            }
-            add_contents(ui)
+                if let Some(heading) = self.heading {
+                    ui.add(Label::new(heading));
+                    ui.add_space(self.heading_gap);
+                }
+                add_contents(ui)
+            })
+            .inner
         })
     }
 }
@@ -92,6 +97,20 @@ mod tests {
             .stroke(Stroke::new(1.0, Color32::GRAY))
             .corner_radius(CornerRadius::same(6))
             .inner_margin(Margin::same(8))
+    }
+
+    #[test]
+    fn heading_stays_above_controls_in_horizontal_parents() {
+        let mut h = egui_kittest::Harness::builder().with_size(Vec2::new(500.0, 300.0)).build_ui(|ui| {
+            ui.horizontal(|ui| {
+                Section::new(style()).heading("Display").fill_width(false).show(ui, |ui| {
+                    ui.button("Apply");
+                });
+                ui.label("Neighbour");
+            });
+        });
+        h.run_steps(2);
+        assert!(h.get_by_label("Apply").rect().top() >= h.get_by_label("Display").rect().bottom());
     }
 
     #[test]
