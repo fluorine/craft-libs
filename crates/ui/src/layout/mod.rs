@@ -6,10 +6,12 @@
 
 mod geometry;
 mod resize;
+mod section;
 mod toolbar;
 
 pub use geometry::{SplitAxis, SplitLayout, SplitSize, split_rect};
 pub use resize::{ResizeHandle, ResizeHandleStyle, ResizeResponse};
+pub use section::Section;
 pub use toolbar::{ToolbarFit, fit_toolbar};
 
 #[cfg(test)]
