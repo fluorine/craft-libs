@@ -10,5 +10,6 @@ pub mod docking;
 pub mod icons;
 pub mod layout;
 pub mod printing;
+pub mod shapes;
 pub mod tabs;
 pub mod theme;
