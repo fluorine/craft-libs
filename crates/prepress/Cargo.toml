@@ -1,0 +1,16 @@
+[package]
+name = "craft-prepress"
+description = "Prepress for the Craft apps: ink model, per-ink plates rendered from a PDF, coverage, ink limits and composite preview"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+craft-pdf = { workspace = true, features = ["raster", "write"] }
+craft-cms = { workspace = true }
+thiserror = { workspace = true }

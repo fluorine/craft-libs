@@ -29,7 +29,7 @@ The profile licence is retained in `licenses/pdf-writer/LICENSE-ICC.txt`.
 | `krilla 0.8.2 / icc/sRGB-v4.icc` | Clinton Ingram | https://github.com/LaurenzV/krilla/blob/3ffdf0588cf98050aad6edba51ca70162e1fb5b5/crates/krilla/icc/sRGB-v4.icc | CC0-1.0 | `c56e1685d888f5edb92fe07f2750f387f8fe8e91b32ff8fb0b56bfbbb9458353` | PDF writer colour profiles |
 
 The four Krilla ICC entries above are also stored unchanged in `vendor/krilla/icc`.
-The vendored source patch and per-file hashes are recorded in `vendor/krilla/README.craft.md` and `vendor/krilla/SOURCE.json`.
+The vendored source patches are in `vendor/krilla/patches`, described in `vendor/krilla/README.craft.md`; per-file hashes are in `vendor/krilla/SOURCE.json`.
 
 ## Assets retained with the optional PDF reader
 

@@ -9,8 +9,8 @@ use pdf_writer::{Finish, Pdf, Ref, TextStr};
 use std::cell::LazyCell;
 use xmp_writer::{LangId, Timezone, XmpWriter};
 
-use crate::configure::{Configuration, PdfVersion, ValidationError};
-use crate::serialize::SerializeContext;
+use crate::configure::{PdfVersion, ValidationError};
+use crate::serialize::{SerializeContext, SerializeSettings};
 
 /// Metadata for a PDF document.
 #[derive(Default, Clone, Debug)]
@@ -248,13 +248,14 @@ impl Metadata {
         &self,
         ref_: &mut Ref,
         pdf: &mut Pdf,
-        config: Configuration,
+        settings: &SerializeSettings,
     ) {
+        let config = settings.configuration;
         if config.validators().prohibits_info_dict() {
             return;
         }
 
-        if self.has_document_info() {
+        if self.has_document_info() || settings.has_print_info(config.version()) {
             let ref_ = ref_.bump();
             let mut document_info = LazyCell::new(|| pdf.document_info(ref_));
 
@@ -291,6 +292,10 @@ impl Metadata {
             if let Some(date_time) = self.creation_date {
                 document_info.modified_date(pdf_date(date_time));
                 document_info.creation_date(pdf_date(date_time));
+            }
+
+            if settings.has_print_info(config.version()) {
+                settings.write_print_info(&mut document_info);
             }
         }
     }
