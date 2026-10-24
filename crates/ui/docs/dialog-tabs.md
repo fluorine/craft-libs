@@ -7,7 +7,9 @@ accessible tab interaction. It suits settings and property dialogs across Craft 
 Provide a `DialogTabStyle` with the application's colors, border, font and top corner radius.
 Allocate rectangles using the application's layout and optionally `tabs::fit`; draw a baseline
 before the tabs. Selected tabs use `style.page` and erase their bottom border so they join the
-page. The page should start at the tabs' bottom edge and use the same fill.
+page. Use `style.border` for the baseline centered on the bottom edge; the selected cover extends
+half its width below the interaction rectangle. Other sides and text retain their original clip.
+The page should start at the tabs' bottom edge and use the same fill.
 
 ```rust
 let response = craft_ui::tabs::Tab::new(stable_id, localized_label, selected)

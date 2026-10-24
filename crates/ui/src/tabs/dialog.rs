@@ -13,6 +13,8 @@ pub struct DialogTabStyle {
     pub hovered: Color32,
     pub text: Color32,
     pub selected_text: Color32,
+    /// Use this stroke for the strip baseline too. The selected seam covers half its width
+    /// below the tab, matching a baseline centered on the bottom edge.
     pub border: Stroke,
     pub font: FontId,
     pub top_radius: u8,
@@ -42,12 +44,16 @@ impl Tab<'_> {
                 style.inactive
             };
             let radius = CornerRadius { nw: style.top_radius, ne: style.top_radius, sw: 0, se: 0 };
-            let painter = ui.painter().with_clip_rect(ui.clip_rect().intersect(rect));
+            let mut paint_bounds = rect;
+            if selected {
+                paint_bounds.max.y += width * 0.5;
+            }
+            let painter = ui.painter().with_clip_rect(ui.clip_rect().intersect(paint_bounds));
             painter.rect(shown, radius, fill, stroke, StrokeKind::Inside);
             // Cover only the selected tab's bottom edge, preserving the vertical border corners.
             if selected && width > 0.0 && rect.width() > 2.0 * width {
                 painter.rect_filled(
-                    Rect::from_min_max(pos2(rect.left() + width, rect.bottom() - width), pos2(rect.right() - width, rect.bottom())),
+                    Rect::from_min_max(pos2(rect.left() + width, rect.bottom() - width), pos2(rect.right() - width, rect.bottom() + width * 0.5)),
                     0.0,
                     style.page,
                 );
@@ -113,5 +119,25 @@ mod tests {
         });
         out.textures_delta.clear();
         let _ = ctx.tessellate(out.shapes, out.pixels_per_point);
+    }
+
+    #[test]
+    fn selected_tab_erases_a_baseline_centered_on_its_bottom_edge() {
+        let mut h = egui_kittest::Harness::builder().with_size(Vec2::new(120.0, 80.0)).wgpu().build_ui(|ui| {
+            ui.painter().rect_filled(ui.max_rect(), 0.0, Color32::WHITE);
+            let rect = Rect::from_min_size(egui::pos2(10.0, 10.0), Vec2::new(100.0, 26.0));
+            let mut style = style();
+            style.border = Stroke::new(2.0, Color32::BLACK);
+            ui.painter().line_segment([rect.left_bottom(), rect.right_bottom()], style.border);
+            Tab::new(Id::new("joined"), "Options", true).show_dialog_at(ui, rect, &style);
+        });
+        h.ctx.set_pixels_per_point(1.0);
+        h.run_steps(3);
+        let image = h.render();
+        assert!(image.is_ok());
+        if let Ok(image) = image {
+            let pixel = image.get_pixel(60, 36);
+            assert!(pixel[0] >= 245 && pixel[1] >= 245 && pixel[2] >= 245, "seam remains visible: {pixel:?}");
+        }
     }
 }
