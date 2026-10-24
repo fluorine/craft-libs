@@ -156,7 +156,7 @@ impl BackdropTexture {
     /// Upload a bounded valid image using linear filtering. Invalid images return `None` without
     /// replacing the cache. Use a distinct cache per context; texture IDs belong to that context.
     pub fn update(&mut self, ctx: &Context, name: &str, image: ColorImage) -> Option<egui::TextureId> {
-        if !valid_image(&image, MAX_TEXELS) {
+        if !valid_image(&image, MAX_TEXELS) || image.size.iter().any(|&side| side > MAX_SIDE) {
             return None;
         }
         if self.image.as_ref() != Some(&image) {
@@ -230,5 +230,26 @@ mod tests {
         });
         assert_eq!(out.textures_delta.set.iter().filter(|(id, _)| Some(**id) == first_id).count(), 1);
         out.drop_without_applying_deltas();
+    }
+
+    #[test]
+    fn texture_upload_rejects_long_thin_images_without_replacing_the_cache() {
+        let ctx = Context::default();
+        let mut cache = BackdropTexture::default();
+        let image = ColorImage::new([1, 1], vec![Color32::RED]);
+        let mut kept = None;
+        ctx.run_ui(egui::RawInput::default(), |_| {
+            kept = cache.update(&ctx, "bounded", image.clone());
+        })
+        .drop_without_applying_deltas();
+        assert!(kept.is_some());
+        for size in [[MAX_SIDE + 1, 1], [1, MAX_SIDE + 1]] {
+            let out = ctx.run_ui(egui::RawInput::default(), |_| {
+                assert!(cache.update(&ctx, "bounded", ColorImage::new(size, vec![Color32::BLUE; size[0] * size[1]])).is_none());
+                assert_eq!(cache.update(&ctx, "bounded", image.clone()), kept);
+            });
+            assert!(out.textures_delta.set.iter().all(|(id, _)| Some(*id) != kept));
+            out.drop_without_applying_deltas();
+        }
     }
 }

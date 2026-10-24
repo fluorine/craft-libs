@@ -19,7 +19,9 @@ the host's overlaid tint supplies translucency. No brightness threshold or dark/
 hard-coded. Choose tint for text contrast and provide an opaque fallback when transparency is off.
 
 Inputs are validated before multiplication/allocation. Source images are capped at 16,777,216
-pixels, thumbnails/output at 262,144 texels, output sides at 1024. Invalid captures/areas return
+pixels, thumbnails/output at 262,144 texels, output and uploaded texture sides at 1024. A long,
+thin upload is rejected even when its total pixel count fits; the existing cache is preserved.
+Invalid captures/areas return
 `None`; invalid layer rectangles are ignored. Identical texture images skip uploads. Distinct
 windows/contexts use distinct cache instances; dropping one releases its texture.
 
