@@ -104,7 +104,7 @@ mod tests {
         let mut h = egui_kittest::Harness::builder().with_size(Vec2::new(500.0, 300.0)).build_ui(|ui| {
             ui.horizontal(|ui| {
                 Section::new(style()).heading("Display").fill_width(false).show(ui, |ui| {
-                    ui.button("Apply");
+                    let _ = ui.button("Apply");
                 });
                 ui.label("Neighbour");
             });
