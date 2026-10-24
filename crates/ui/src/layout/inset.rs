@@ -1,6 +1,6 @@
 //! Decoration-free indentation for dialog fields and inspector subgroups.
 
-use egui::{InnerResponse, Ui, UiBuilder};
+use egui::{InnerResponse, Rect, Ui, UiBuilder, pos2};
 
 /// Physical left/right padding around a scope, in logical points.
 ///
@@ -34,8 +34,16 @@ impl ContentInset {
         let mut rect = ui.available_rect_before_wrap();
         let left = self.left.min(rect.width().max(0.0));
         rect.min.x += left;
-        rect.max.x -= self.right.min(rect.width().max(0.0));
-        ui.scope_builder(UiBuilder::new().max_rect(rect), add_contents)
+        let right = self.right.min(rect.width().max(0.0));
+        rect.max.x -= right;
+        ui.scope_builder(UiBuilder::new().max_rect(rect), |ui| {
+            let inner = add_contents(ui);
+            // Wrapping uses available width, but the parent consumes only the used rectangle.
+            // Reserve both physical insets after layout without changing content positions/IDs.
+            let used = ui.min_rect();
+            ui.expand_to_include_rect(Rect::from_min_max(pos2(used.left() - left, used.top()), pos2(used.right() + right, used.bottom())));
+            inner
+        })
     }
 }
 
@@ -47,6 +55,20 @@ fn amount(value: f32) -> f32 {
 mod tests {
     use super::*;
     use egui::{Context, RawInput, Rect, Vec2};
+
+    #[test]
+    fn trailing_padding_separates_a_following_horizontal_sibling() {
+        let ctx = Context::default();
+        ctx.run_ui(RawInput::default(), |ui| {
+            ui.horizontal(|ui| {
+                let field = ContentInset::new(12.5).right(9.25).show(ui, |ui| ui.button("Field"));
+                let next = ui.button("Next");
+                assert!((field.response.rect.right() - field.inner.rect.right() - 9.25).abs() < 0.01);
+                assert!(next.rect.left() >= field.inner.rect.right() + 9.25 + ui.spacing().item_spacing.x - 0.01);
+            });
+        })
+        .drop_without_applying_deltas();
+    }
 
     #[test]
     fn fractional_padding_keeps_fields_below_heading_and_following_rows_below_contents() {

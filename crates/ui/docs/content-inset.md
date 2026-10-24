@@ -12,7 +12,8 @@ craft_ui::layout::ContentInset::new(12.5).show(ui, |ui| {
 ```
 
 Add `.right(points)` for trailing space. Left/right mean physical sides; applications choose
-the appropriate padding for their language and layout. The scope inherits layout, clipping and
+the appropriate padding for their language and layout. Both insets are included in the consumed
+scope, so following horizontal siblings retain the gap. The scope inherits layout, clipping and
 disabled state. It adds no vertical space or frame. Use it independently or inside a caller-styled
 section. Invalid or negative padding becomes zero; finite padding is capped at one million logical
 points, then at available width, with the left side taking priority.
