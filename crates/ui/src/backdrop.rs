@@ -219,13 +219,16 @@ mod tests {
         });
         assert!(first_id.is_some());
         assert!(out.textures_delta.set.iter().any(|(id, _)| Some(*id) == first_id));
+        out.drop_without_applying_deltas();
         let out = ctx.run_ui(egui::RawInput::default(), |_| {
             assert_eq!(cache.update(&ctx, "backdrop", image.clone()), first_id);
         });
         assert!(out.textures_delta.set.iter().all(|(id, _)| Some(*id) != first_id));
+        out.drop_without_applying_deltas();
         let out = ctx.run_ui(egui::RawInput::default(), |_| {
             assert_eq!(cache.update(&ctx, "backdrop", ColorImage::new([1, 1], vec![Color32::BLUE])), first_id);
         });
         assert_eq!(out.textures_delta.set.iter().filter(|(id, _)| Some(*id) == first_id).count(), 1);
+        out.drop_without_applying_deltas();
     }
 }
