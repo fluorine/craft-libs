@@ -228,7 +228,7 @@ mod tests {
         let out = ctx.run_ui(egui::RawInput::default(), |_| {
             assert_eq!(cache.update(&ctx, "backdrop", ColorImage::new([1, 1], vec![Color32::BLUE])), first_id);
         });
-        assert_eq!(out.textures_delta.set.iter().filter(|(id, _)| Some(*id) == first_id).count(), 1);
+        assert_eq!(out.textures_delta.set.iter().filter(|(id, _)| Some(**id) == first_id).count(), 1);
         out.drop_without_applying_deltas();
     }
 }
