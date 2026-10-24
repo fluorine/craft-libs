@@ -115,8 +115,11 @@ fn motion_off_and_disabling_snap_even_in_the_middle_of_a_hover() {
     h.frame(vec![]);
     assert_eq!(h.tint, Some(Color32::WHITE));
     h.enabled = true;
+    // egui's hover hit testing uses the previous pass: register the re-enabled target first.
+    h.frame(vec![]);
     h.ctx.global_style_mut(|s| s.animation_time = 0.0);
-    h.frame(vec![Event::PointerMoved(inside)]);
+    let (response, _) = h.frame(vec![Event::PointerMoved(inside)]);
+    assert!(response.hovered());
     assert_eq!(h.tint, Some(Color32::GREEN));
     h.frame(vec![Event::PointerMoved(pos2(300.0, 150.0))]);
     assert_eq!(h.tint, Some(Color32::WHITE));
