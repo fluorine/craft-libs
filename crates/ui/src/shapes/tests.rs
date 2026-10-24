@@ -77,3 +77,38 @@ fn every_procedural_preview_tessellates_and_invalid_geometry_is_inert() {
     assert!(out.shapes.is_empty() || out.shapes.iter().all(|s| matches!(s.shape, egui::Shape::Noop)));
     out.drop_without_applying_deltas();
 }
+
+#[test]
+fn concave_previews_fill_the_star_tips_and_heart_without_an_outline() {
+    let cross = |a: egui::Pos2, b: egui::Pos2, c: egui::Pos2| {
+        let ab = b - a;
+        let ac = c - a;
+        ab.x * ac.y - ab.y * ac.x
+    };
+    for (preset, sample) in [(ShapePreset::Star, egui::pos2(20.0, 14.0)), (ShapePreset::Heart, egui::pos2(20.0, 20.0))] {
+        let ctx = egui::Context::default();
+        let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
+            paint_preset(ui.painter(), egui::Rect::from_min_size(egui::pos2(10.0, 10.0), Vec2::splat(20.0)), preset, Stroke::NONE, Color32::RED);
+        });
+        out.textures_delta.clear();
+        let mut covered = false;
+        for primitive in ctx.tessellate(out.shapes, out.pixels_per_point) {
+            if let egui::epaint::Primitive::Mesh(mesh) = primitive.primitive {
+                assert!(mesh.is_valid());
+                for triangle in mesh.indices.chunks_exact(3) {
+                    let [a, b, c] = [mesh.vertices[triangle[0] as usize], mesh.vertices[triangle[1] as usize], mesh.vertices[triangle[2] as usize]];
+                    // Consistent winding verifies each fixed contour's center stays in its kernel.
+                    assert!(cross(a.pos, b.pos, c.pos) > 0.0);
+                    covered |= primitive.clip_rect.contains(sample)
+                        && a.color == Color32::RED
+                        && b.color == Color32::RED
+                        && c.color == Color32::RED
+                        && cross(a.pos, b.pos, sample) >= -0.0001
+                        && cross(b.pos, c.pos, sample) >= -0.0001
+                        && cross(c.pos, a.pos, sample) >= -0.0001;
+                }
+            }
+        }
+        assert!(covered, "{preset:?} must honor its fill with no outline");
+    }
+}

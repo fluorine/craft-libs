@@ -60,7 +60,7 @@ pub fn paint_preset(painter: &Painter, rect: Rect, preset: ShapePreset, stroke: 
                     point(10.0 + radius * angle.cos(), 10.8 + radius * angle.sin())
                 })
                 .collect();
-            painter.add(Shape::convex_polygon(points.iter().skip(1).step_by(2).copied().collect(), fill, Stroke::NONE));
+            fill_contour(&painter, point(10.0, 10.8), &points, fill);
             painter.add(Shape::closed_line(points, stroke));
         }
         ShapePreset::Heart => {
@@ -73,6 +73,7 @@ pub fn paint_preset(painter: &Painter, rect: Rect, preset: ShapePreset, stroke: 
                     )
                 })
                 .collect();
+            fill_contour(&painter, point(10.0, 10.0), &points, fill);
             painter.add(Shape::closed_line(points, stroke));
         }
         _ => {
@@ -104,4 +105,22 @@ pub fn paint_preset(painter: &Painter, rect: Rect, preset: ShapePreset, stroke: 
         }
     }
     // The painter's existing clip handles its host; all preview geometry stays in the icon box.
+}
+
+/// These two fixed contours are star-shaped around the supplied center: it lies in every
+/// edge's interior half-plane. A triangle fan therefore fills their concavities without the
+/// convex-polygon assumption. This is not a triangulator for arbitrary application paths.
+fn fill_contour(painter: &Painter, center: Pos2, points: &[Pos2], fill: Color32) {
+    if points.len() < 3 || fill == Color32::TRANSPARENT {
+        return;
+    }
+    let mut mesh = egui::Mesh::default();
+    mesh.colored_vertex(center, fill);
+    for &point in points {
+        mesh.colored_vertex(point, fill);
+    }
+    for index in 0..points.len() {
+        mesh.add_triangle(0, 1 + index as u32, 1 + ((index + 1) % points.len()) as u32);
+    }
+    painter.add(Shape::mesh(mesh));
 }

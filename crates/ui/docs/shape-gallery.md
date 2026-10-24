@@ -30,4 +30,6 @@ Apps own localization, theme, popup lifetime, current document, insertion coordi
 selection. Additional actions such as New Drawing Canvas remain app-specific menu entries.
 `paint_preset` is also available for app-owned gallery layouts. The previews use original path
 geometry and no external assets. They are UI icons, not editable document geometry or a shape
-rendering engine. Consumer adoption and command adapters are separate work.
+rendering engine. Star and heart contours honor `fill` across their full area, including with no
+outline; their fixed concave paths use triangle fans around verified interior centers.
+Consumer adoption and command adapters are separate work.
