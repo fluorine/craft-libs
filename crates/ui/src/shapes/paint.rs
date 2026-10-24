@@ -64,7 +64,7 @@ pub fn paint_preset(painter: &Painter, rect: Rect, preset: ShapePreset, stroke: 
             painter.add(Shape::closed_line(points, stroke));
         }
         ShapePreset::Heart => {
-            let points = (0..32)
+            let points: Vec<_> = (0..32)
                 .map(|i| {
                     let t = i as f32 / 32.0 * std::f32::consts::TAU;
                     point(
