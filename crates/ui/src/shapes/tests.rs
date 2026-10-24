@@ -54,12 +54,13 @@ fn catalog_keys_are_unique_and_arrow_connector_semantics_remain_distinct() {
 #[test]
 fn every_procedural_preview_tessellates_and_invalid_geometry_is_inert() {
     let ctx = egui::Context::default();
-    let out = ctx.run_ui(egui::RawInput::default(), |ui| {
+    let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
         for &preset in PRESETS {
             let rect = egui::Rect::from_min_size(egui::pos2(10.0, 10.0), Vec2::splat(20.0));
             paint_preset(ui.painter(), rect, preset, Stroke::new(f32::NAN, Color32::BLACK), Color32::LIGHT_BLUE);
         }
     });
+    out.textures_delta.clear();
     for primitive in ctx.tessellate(out.shapes, out.pixels_per_point) {
         assert!(primitive.clip_rect.min.x >= 10.0 && primitive.clip_rect.min.y >= 10.0);
         assert!(primitive.clip_rect.max.x <= 30.0 && primitive.clip_rect.max.y <= 30.0);
@@ -74,4 +75,5 @@ fn every_procedural_preview_tessellates_and_invalid_geometry_is_inert() {
         }
     });
     assert!(out.shapes.is_empty() || out.shapes.iter().all(|s| matches!(s.shape, egui::Shape::Noop)));
+    out.drop_without_applying_deltas();
 }
