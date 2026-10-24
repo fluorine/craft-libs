@@ -148,7 +148,7 @@ mod tests {
         for value in [f32::NAN, f32::INFINITY, -1.0, f32::MAX] {
             let mut frame = style();
             frame.stroke.width = value;
-            let out = ctx.run_ui(RawInput::default(), |ui| {
+            let mut out = ctx.run_ui(RawInput::default(), |ui| {
                 Section::new(frame).heading("").heading_gap(value).show(ui, |ui| {
                     let response = Section::new(frame).heading("Nested").heading_gap(value).show(ui, |ui| {
                         ui.label("Contents");
@@ -156,6 +156,7 @@ mod tests {
                     assert!(response.response.rect.is_finite());
                 });
             });
+            out.textures_delta.clear();
             let _ = ctx.tessellate(out.shapes, out.pixels_per_point);
             assert_eq!(ctx.global_style().visuals.panel_fill, original.panel_fill);
             assert_eq!(ctx.global_style().visuals.window_fill, original.window_fill);
