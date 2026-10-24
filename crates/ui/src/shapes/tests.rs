@@ -95,7 +95,7 @@ fn concave_previews_fill_the_star_tips_and_heart_without_an_outline() {
         for primitive in ctx.tessellate(out.shapes, out.pixels_per_point) {
             if let egui::epaint::Primitive::Mesh(mesh) = primitive.primitive {
                 assert!(mesh.is_valid());
-                for triangle in mesh.indices.chunks_exact(3) {
+                for triangle in mesh.indices.as_chunks::<3>().0 {
                     let [a, b, c] = [mesh.vertices[triangle[0] as usize], mesh.vertices[triangle[1] as usize], mesh.vertices[triangle[2] as usize]];
                     // Consistent winding verifies each fixed contour's center stays in its kernel.
                     assert!(cross(a.pos, b.pos, c.pos) > 0.0);
