@@ -1,6 +1,6 @@
 use egui::{Color32, Context};
-use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT as _, Queryable as _};
+use egui_kittest::Harness;
 
 use super::*;
 
@@ -155,6 +155,15 @@ fn the_current_entry_is_selected_in_a_plain_list() {
     h.run();
     assert_eq!(h.get_by_label("Calibri").accesskit_node().toggled(), Some(egui::accesskit::Toggled::True));
     assert_ne!(h.get_by_label("Arial").accesskit_node().toggled(), Some(egui::accesskit::Toggled::True));
+}
+
+#[test]
+fn a_current_entry_in_recent_is_not_selected_again_in_all() {
+    let mut h = rows_harness(&["Arial", "Calibri"], &["Calibri"], "Calibri");
+    h.run();
+    let marked = h.query_all_by_label("Calibri").filter(|node| node.accesskit_node().toggled() == Some(egui::accesskit::Toggled::True)).count();
+    assert_eq!(h.query_all_by_label("Calibri").count(), 2);
+    assert_eq!(marked, 1, "the current entry is marked only in Recent");
 }
 
 #[test]

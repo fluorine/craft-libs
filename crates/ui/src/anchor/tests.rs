@@ -1,6 +1,6 @@
-use egui::{Rect, Vec2, pos2};
+use egui::{pos2, Rect, Vec2};
 
-use super::{BarPlacement, anchor_rect, visible_anchor};
+use super::{anchor_rect, visible_anchor, BarPlacement};
 
 const BAR: BarPlacement = BarPlacement { size: Vec2::new(300.0, 60.0), gap: 8.0, inset: 4.0, min_visible_h: 1.0 };
 
@@ -9,7 +9,7 @@ fn vp() -> Rect {
 }
 
 fn place(top: f32, left: f32) -> Rect {
-    anchor_rect(top, left, vp(), BAR).unwrap_or(Rect::EVERYTHING)
+    anchor_rect(line(left, top), vp(), BAR).unwrap_or(Rect::EVERYTHING)
 }
 
 fn line(x: f32, y: f32) -> Rect {
@@ -28,7 +28,7 @@ fn sits_above_the_selection_when_there_is_room() {
 #[test]
 fn flips_below_when_there_is_no_room_above() {
     let r = place(60.0, 300.0);
-    assert!((r.min.y - (60.0 + BAR.gap)).abs() < 1e-3);
+    assert!((r.min.y - (80.0 + BAR.gap)).abs() < 1e-3);
 }
 
 #[test]
@@ -74,17 +74,20 @@ fn a_bar_for_a_partly_hidden_selection_clears_the_top_edge() {
     let clip = vp();
     let partial = Rect::from_min_size(pos2(100.0, clip.top() - 40.0), Vec2::new(200.0, 50.0));
     let a = visible_anchor([partial], clip, 1.0).unwrap();
-    let bar = anchor_rect(a.min.y, a.min.x, clip, BAR).unwrap();
+    let bar = anchor_rect(a, clip, BAR).unwrap();
     assert!(bar.min.y >= clip.top() - 1e-3 && bar.max.y <= clip.bottom() + 1e-3);
+    assert!((bar.min.y - (a.bottom() + BAR.gap)).abs() < 1e-3);
 }
 
 #[test]
 fn degenerate_inputs_are_rejected() {
-    assert!(anchor_rect(f32::NAN, 10.0, vp(), BAR).is_none());
-    assert!(anchor_rect(10.0, f32::NAN, vp(), BAR).is_none());
-    assert!(anchor_rect(f32::INFINITY, 10.0, vp(), BAR).is_none());
-    assert!(anchor_rect(10.0, 10.0, Rect::EVERYTHING, BAR).is_none());
-    assert!(anchor_rect(10.0, 10.0, Rect::from_min_size(pos2(0.0, 0.0), Vec2::new(0.0, 100.0)), BAR).is_none());
+    assert!(anchor_rect(Rect::from_min_max(pos2(f32::NAN, 10.0), pos2(20.0, 30.0)), vp(), BAR).is_none());
+    assert!(anchor_rect(line(10.0, 10.0), Rect::EVERYTHING, BAR).is_none());
+    assert!(anchor_rect(line(10.0, 10.0), Rect::from_min_size(pos2(0.0, 0.0), Vec2::new(0.0, 100.0)), BAR).is_none());
+    assert!(anchor_rect(line(10.0, 10.0), vp(), BarPlacement { size: Vec2::new(f32::NAN, 10.0), ..BAR }).is_none());
+    assert!(anchor_rect(line(10.0, 10.0), vp(), BarPlacement { size: Vec2::new(0.0, 10.0), ..BAR }).is_none());
+    assert!(anchor_rect(line(10.0, 10.0), vp(), BarPlacement { gap: f32::INFINITY, ..BAR }).is_none());
+    assert!(visible_anchor([line(100.0, 100.0)], vp(), f32::NAN).is_none());
     let nan = Rect::from_min_size(pos2(f32::NAN, 0.0), Vec2::new(10.0, 10.0));
     assert_eq!(visible_anchor([nan], vp(), 1.0), None);
 }
@@ -92,6 +95,6 @@ fn degenerate_inputs_are_rejected() {
 #[test]
 fn a_viewport_smaller_than_the_bar_still_yields_a_rect() {
     let tiny = Rect::from_min_size(pos2(0.0, 0.0), Vec2::new(20.0, 20.0));
-    let r = anchor_rect(10.0, 5.0, tiny, BAR).unwrap_or(Rect::EVERYTHING);
+    let r = anchor_rect(line(5.0, 10.0), tiny, BAR).unwrap_or(Rect::EVERYTHING);
     assert!(r.width() > 0.0 && r.min.x.is_finite() && r.min.y.is_finite());
 }

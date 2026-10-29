@@ -7,7 +7,7 @@
 
 use std::ops::Range;
 
-use egui::{Color32, Context, Id, Rect, Response, Sense, Stroke, StrokeKind, Ui, vec2};
+use egui::{vec2, Color32, Context, Id, Rect, Response, Sense, Stroke, StrokeKind, Ui};
 
 fn hover_key() -> Id {
     Id::unique("craft_ui_pick_hover")
@@ -95,7 +95,11 @@ pub struct Sections<'a> {
 /// Rows of `n` entries under `recent` recent ones: the two headings and the recent
 /// entries come on top when there are any.
 pub fn section_rows(recent: usize, n: usize) -> usize {
-    if recent == 0 { n } else { n.saturating_add(recent).saturating_add(2) }
+    if recent == 0 {
+        n
+    } else {
+        n.saturating_add(recent).saturating_add(2)
+    }
 }
 
 /// Row `k`: the recent heading, the recent entries, the all heading, then `item(0..)`.
@@ -197,18 +201,19 @@ pub fn pick_rows(ui: &mut Ui, options: PickRows<'_>) -> Option<String> {
             None => continue,
         };
         let lit = highlight == Some(k);
+        let in_all = recent_rows > 0 && k > recent_rows.saturating_add(1);
+        let is_current = it == current && !(in_all && current_is_recent);
         let resp = match preview {
             Some(p) => {
                 if lit {
                     mark_row(ui, row_height, style.fill, None);
                 }
-                let in_all = recent_rows > 0 && k > recent_rows.saturating_add(1);
-                if it == current && !(in_all && current_is_recent) {
+                if is_current {
                     mark_row(ui, row_height, style.fill, Some(style.accent));
                 }
                 p(ui, it)
             }
-            None => ui.selectable_label(if highlight.is_some() { lit } else { it == current }, it.as_str()),
+            None => ui.selectable_label(if highlight.is_some() { lit } else { is_current }, it.as_str()),
         };
         if resp.hovered() {
             note_hover(ui.ctx(), it.clone());
@@ -258,5 +263,5 @@ pub fn pick_rows_in_menu(ui: &mut Ui, options: PickRows<'_>) -> Option<String> {
     picked
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests;
