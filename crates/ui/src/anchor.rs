@@ -27,7 +27,7 @@ pub fn visible_anchor(selection_rects: impl IntoIterator<Item = Rect>, clip: Rec
             continue;
         }
         let visible = sr.intersect(clip);
-        if visible.width() <= 0.0 || visible.height() < min_visible_h {
+        if visible.width() <= 0.0 || visible.height() <= 0.0 || visible.height() < min_visible_h {
             continue;
         }
         if first.is_none_or(|f| visible.min.y < f.min.y) {

@@ -70,6 +70,14 @@ fn a_sliver_shorter_than_the_minimum_is_not_an_anchor() {
 }
 
 #[test]
+fn zero_height_edge_touch_does_not_hide_a_later_visible_anchor() {
+    let clip = vp();
+    let touching = Rect::from_min_size(pos2(100.0, clip.top() - 10.0), Vec2::new(200.0, 10.0));
+    let visible = line(100.0, clip.top() + 10.0);
+    assert_eq!(visible_anchor([touching, visible], clip, 0.0), Some(visible));
+}
+
+#[test]
 fn a_bar_for_a_partly_hidden_selection_clears_the_top_edge() {
     let clip = vp();
     let partial = Rect::from_min_size(pos2(100.0, clip.top() - 40.0), Vec2::new(200.0, 50.0));
